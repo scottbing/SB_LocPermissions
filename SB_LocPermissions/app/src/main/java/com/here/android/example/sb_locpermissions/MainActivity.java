@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // check permissions first
         checkPermissions();
 
         // Acquire a reference to the system Location Manager
@@ -40,9 +41,11 @@ public class MainActivity extends AppCompatActivity {
         criteria.setAccuracy(Criteria.ACCURACY_FINE);
         String bestProvider = locationManager.getBestProvider(criteria, true);
 
+        // prime the location with hte last known location
         try {
             // get last known location
             String locationProvider = LocationManager.GPS_PROVIDER;
+            bestProvider = bestProvider == null ? locationProvider : bestProvider;
             Location lastKnowLocation = locationManager.getLastKnownLocation(bestProvider);
         } catch (SecurityException e){
             Log.d( "MainActivity", e.toString());
