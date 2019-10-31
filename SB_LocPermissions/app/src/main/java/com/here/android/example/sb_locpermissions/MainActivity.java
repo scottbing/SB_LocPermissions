@@ -33,7 +33,10 @@ public class MainActivity extends AppCompatActivity {
         // check permissions first
         checkPermissions();
 
-        // Acquire a reference to the system Location Manager
+        // prime location value with the Best Last Know Location
+        Location lastKnowLocation = getBestLastKnownLocation(this);
+
+       /* // Acquire a reference to the system Location Manager
         LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
         // get the best Provider
@@ -46,11 +49,41 @@ public class MainActivity extends AppCompatActivity {
             // get last known location
             String locationProvider = LocationManager.GPS_PROVIDER;
             bestProvider = bestProvider == null ? locationProvider : bestProvider;
-            Location lastKnowLocation = locationManager.getLastKnownLocation(bestProvider);
+
+            // need to ask if run-time permissions have been established
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
+                    PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                            PackageManager.PERMISSION_GRANTED) {
+                Location lastKnowLocation = locationManager.getLastKnownLocation(bestProvider);
+            } else {
+                Toast.makeText(this, "Permission Denied", Toast.LENGTH_LONG).show();
+            }
         } catch (SecurityException e){
             Log.d( "MainActivity", e.toString());
+        }*/
+    }
+
+    // ########################################################################
+    // Example 3: taken from https://www.programcreek.com/java-api-examples/?class=android.location.Location&method=getAccuracy
+    // ########################################################################
+    public static Location getBestLastKnownLocation(Context context) {
+        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        List<String> providers = locationManager.getAllProviders();
+        Location bestLocation = null;
+
+        for (String provider : providers) {
+            try {
+                Location location = locationManager.getLastKnownLocation(provider);
+                if (bestLocation == null || location != null
+                        && location.getElapsedRealtimeNanos() > bestLocation.getElapsedRealtimeNanos()
+                        && location.getAccuracy() > bestLocation.getAccuracy())
+                    bestLocation = location;
+            } catch (SecurityException ignored) {
+            }
         }
 
+        return bestLocation;
     }
 
     private void checkPermissions(){
@@ -65,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
                 // this thread waiting for the user's response! After the user
                 // sees the explanation, try again to request the permission.
 
-                /*AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+                AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
                 alertDialog.setTitle("Alert");
                 alertDialog.setMessage("we need permission for read contact, find your location and system alert window\n\nIf you reject permission,you can not use this service\\n\\nPlease turn on permissions at [Setting]");
                 alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
@@ -74,8 +107,8 @@ public class MainActivity extends AppCompatActivity {
                                 dialog.dismiss();
                             }
                         });
-                alertDialog.show();*/
-                PermissionListener permissionlistener = new PermissionListener() {
+                alertDialog.show();
+                /*PermissionListener permissionlistener = new PermissionListener() {
                     @Override
                     public void onPermissionGranted() {
                         Toast.makeText(getApplicationContext(), "Permission Granted", Toast.LENGTH_SHORT).show();
@@ -96,7 +129,8 @@ public class MainActivity extends AppCompatActivity {
                         .setDeniedMessage("If you reject permission,you can not use this service\n\nPlease turn on permissions at [Setting] > [Permission]")
                         .setGotoSettingButtonText("setting")
                         .setPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.SYSTEM_ALERT_WINDOW)
-                        .check();
+                        .setPermissions(Manifest.permission,WRITE_EXTERNAL_STORAGE, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.SYSTEM_ALERT_WINDOW)
+                        .check();*/
             }  else  {
                 // No explanation needed; request the permission
                 ActivityCompat.requestPermissions( this, new String[]{permission}, 2);
